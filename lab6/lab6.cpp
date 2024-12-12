@@ -1,6 +1,7 @@
 ﻿#include <windows.h>
 #include <string>
 #include <sstream>
+#include <vector>
 
 #pragma comment(linker,"\"/manifestdependency:type='win32' \
 name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
@@ -30,6 +31,8 @@ const int btnequ = 24;
 std::wstring sbuf = L"0";
 int a = 0, b = 0, j = 0;
 
+std::vector<HWND> buttons;
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -41,7 +44,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.lpszClassName = CLASS_NAME;
     wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+    wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 
     RegisterClass(&wc);
 
@@ -49,7 +52,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         0,
         CLASS_NAME,
         L"Калькулятор",
-        WS_POPUPWINDOW | WS_SYSMENU | WS_CAPTION | WS_BORDER | WS_VISIBLE,
+        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
         200, 100, 180, 250,
         NULL, NULL, hInstance, NULL
     );
@@ -60,8 +63,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     MSG msg = {};
     while (GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        if (!IsDialogMessage(hwnd, &msg)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
     }
 
     return 0;
@@ -74,54 +79,73 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             WS_VISIBLE | WS_CHILD | WS_BORDER,
             10, 10, 150, 40, hwnd, (HMENU)edit, GetModuleHandle(NULL), NULL);
 
-        CreateWindow(L"BUTTON", L"&7",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            10, 60, 30, 30, hwnd, (HMENU)btn7, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&8",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            50, 60, 30, 30, hwnd, (HMENU)btn8, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&9",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            90, 60, 30, 30, hwnd, (HMENU)btn9, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&/",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            130, 60, 30, 30, hwnd, (HMENU)btndiv, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&4",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            10, 100, 30, 30, hwnd, (HMENU)btn4, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&5",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            50, 100, 30, 30, hwnd, (HMENU)btn5, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&6",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            90, 100, 30, 30, hwnd, (HMENU)btn6, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&*",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            130, 100, 30, 30, hwnd, (HMENU)btnmul, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&1",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            10, 140, 30, 30, hwnd, (HMENU)btn1, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&2",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            50, 140, 30, 30, hwnd, (HMENU)btn2, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&3",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            90, 140, 30, 30, hwnd, (HMENU)btn3, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&-",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            130, 140, 30, 30, hwnd, (HMENU)btnsub, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&0",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            10, 180, 30, 30, hwnd, (HMENU)btn0, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"C",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            50, 180, 30, 30, hwnd, (HMENU)btnClear, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&=",
+        buttons.push_back(CreateWindow(L"BUTTON", L"&7",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            10, 60, 30, 30, hwnd, (HMENU)btn7, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&8",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            50, 60, 30, 30, hwnd, (HMENU)btn8, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&9",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            90, 60, 30, 30, hwnd, (HMENU)btn9, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&/",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            130, 60, 30, 30, hwnd, (HMENU)btndiv, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&4",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            10, 100, 30, 30, hwnd, (HMENU)btn4, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&5",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            50, 100, 30, 30, hwnd, (HMENU)btn5, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&6",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            90, 100, 30, 30, hwnd, (HMENU)btn6, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&*",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            130, 100, 30, 30, hwnd, (HMENU)btnmul, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&1",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            10, 140, 30, 30, hwnd, (HMENU)btn1, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&2",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            50, 140, 30, 30, hwnd, (HMENU)btn2, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&3",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            90, 140, 30, 30, hwnd, (HMENU)btn3, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&-",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            130, 140, 30, 30, hwnd, (HMENU)btnsub, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&0",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            10, 180, 30, 30, hwnd, (HMENU)btn0, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"C",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            50, 180, 30, 30, hwnd, (HMENU)btnClear, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&=",
             WS_VISIBLE | WS_CHILD | WS_TABSTOP,
-            90, 180, 30, 30, hwnd, (HMENU)btnequ, GetModuleHandle(NULL), NULL);
-        CreateWindow(L"BUTTON", L"&+",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | WS_TABSTOP,
-            130, 180, 30, 30, hwnd, (HMENU)btnsum, GetModuleHandle(NULL), NULL);
+            90, 180, 30, 30, hwnd, (HMENU)btnequ, GetModuleHandle(NULL), NULL));
+        buttons.push_back(CreateWindow(L"BUTTON", L"&+",
+            WS_VISIBLE | WS_CHILD |  WS_TABSTOP,
+            130, 180, 30, 30, hwnd, (HMENU)btnsum, GetModuleHandle(NULL), NULL));
+        break;
+    }
+
+    case WM_KEYDOWN:
+    {
+        if (wParam == VK_TAB) {
+            HWND hFocus = GetFocus();
+            int index = -1;
+            for (size_t i = 0; i < buttons.size(); ++i) {
+                if (hFocus == buttons[i]) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index != -1) {
+                index = (index + 1) % buttons.size();
+                SetFocus(buttons[index]);
+            }
+        }
         break;
     }
     case WM_COMMAND: {
@@ -175,4 +199,3 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     }
     return 0;
 }
-
